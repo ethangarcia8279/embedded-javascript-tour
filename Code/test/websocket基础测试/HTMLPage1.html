@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+     <!-- <script src="websocket.js"></script> -->
+    <!-- <script src="jquery-3.2.1.min.js"></script> -->
+    <script>
+        init();
+        var ws;
+        function init() {
+
+
+            ws = new WebSocket("ws://127.0.0.1:9903");
+            ws.binaryType = "arraybuffer";
+
+          
+            ws.onopen = function (event) { alert("连接成功")  };
+            var timeout;
+            ws.onmessage = function (evt) {
+               
+                    var bytesRead = evt.data.length;
+                    var text;
+                    //evt.data blob类型
+                if (/^\[object (?:Uint8Array|ArrayBuffer)(?:Constructor)?\]$/.test(evt.data)) {
+                    var tempbtye = new Uint8Array(evt.data);
+
+                    var len = parseInt(tempbtye);
+                    if (len == 0)
+                        return;
+                    text = Utf8ArrayToStr(tempbtye, 0,tempbtye.length);
+                    console.log(text);
+                }
+            };
+            ws.onclose = function (event) {
+};
+            ws.onerror = function (event) {
+            };
+
+
+        }
+        function Utf8ArrayToStr(array, i, len) {
+            var out, c;
+            var char2, char3;
+
+            out = "";
+
+            len = parseInt(i) + parseInt(len);
+            while (i < len) {
+                c = array[i++];
+                switch (c >> 4) {
+                    case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+                        // 0xxxxxxx
+                        out += String.fromCharCode(c);
+                        break;
+                    case 12: case 13:
+                        // 110x xxxx   10xx xxxx
+                        char2 = array[i++];
+                        out += String.fromCharCode(((c & 0x1F) << 6) | (char2 & 0x3F));
+                        break;
+                    case 14:
+                        // 1110 xxxx  10xx xxxx  10xx xxxx
+                        char2 = array[i++];
+                        char3 = array[i++];
+                        out += String.fromCharCode(((c & 0x0F) << 12) |
+                            ((char2 & 0x3F) << 6) |
+                            ((char3 & 0x3F) << 0));
+                        break;
+                }
+            }
+
+            return out;
+        }
+
+String.prototype.getBytes = function () {
+    //var bytes = [];
+    //for (var i = 0; i < this.length; i++) {
+    //    var charCode = this.charCodeAt(i);
+    //    var cLen = Math.ceil(Math.log(charCode) / Math.log(256));
+    //    for (var j = 0; j < cLen; j++) {
+    //        bytes.push((charCode << (j * 8)) & 0xFF);
+    //    }
+    //}
+
+    //return bytes;
+    var str = this;
+    var byteArray = [];
+    for (var i = 0; i < str.length; i++)
+        if (str.charCodeAt(i) <= 0x7F)
+            byteArray.push(str.charCodeAt(i));
+        else {
+            var h = encodeURIComponent(str.charAt(i)).substr(1).split('%');
+            for (var j = 0; j < h.length; j++)
+                byteArray.push(parseInt(h[j], 16));
+        }
+    return byteArray;
+}
+function sleep(d){
+  for(var t = Date.now();Date.now() - t <= d;);
+}
+        function send() {
+          //  var sendb = (JSON.stringify('{"path":"scan/scanner_list","msgType":1001,"data":{}}')).getBytes();
+			//var sendb = '{path:"scan/scanner_list",msgType:1001,data:{}}'.getBytes();
+			
+			var sendb ='{"path":"card/scan/start","msgType":2004,"data":{"scanTool":{"name":"KODAK Scanner: i3000","imageCnt":2,"isRed":0,"isTransverse":1,"dpi":150,"showDriver":1}}}'.getBytes();
+            var b = new Int8Array(sendb);
+            ws.send(b);
+        }
+		function senddeviceinfo() {
+			var sendb ='{"path":"device/info","msgType":6001,"data":{}}'.getBytes();
+            var b = new Int8Array(sendb);
+            ws.send(b);
+        }
+		
+		function sendconfiginfo() {
+			var sendb ='{"path":"config/get","msgType":4001,"data":{}}'.getBytes();
+            var b = new Int8Array(sendb);
+            ws.send(b);
+        }
+		function sendscanlist() {
+			var sendb ='{"path":"scan/scanner_list","msgType":1001,"data":{}}'.getBytes();
+            var b = new Int8Array(sendb);
+            ws.send(b,(res)=>{});
+			
+			var sendc ='{"path":"config/get","msgType":4001,"data":{}}'.getBytes();
+            var c = new Int8Array(sendc);
+            ws.send(c,(res)=>{});
+       
+        }
+		function sendscanstart() {
+		var sendb ='{"path":"scan/start","msgType":2001,"data":{"sessionKey":"1de46f640add63f510c468df33f4017c","sessionVal":"de2a67ad75d506a49f4f4928f4f4f926","ExamId":10995,"SubjectId":10,"SchoolId":-1,"batch":16255,"template":40495,"mcardInfo":{"code":0,"data":{"sheet":{"abType":"0","conf":{"isObjectVerticalAlign":false,"redCard":false,"paperType":"A3","answerSheetType":3,"absentMarkCnt":0,"pageSheets":[{"img":{"width":1746,"height":1257},"isFront":true,"pageIndex":0,"ticketNum":{"rowOffset":25,"existsLine":true,"borderType":1,"examNumberMode":0,"firstOption":{"top":2,"left":2,"width":28,"height":22},"colOffset":33,"count":8,"position":{"top":196,"left":528,"width":264,"step":3,"id":"e921dcb5-d0f9-4e27-9789-f9be4bba99de","height":247},"rows":10,"enabled":true,"direction":"horizontal"},"titles":[{"titlecontent":"八上月考","position":{"top":108,"left":411,"width":98,"step":2,"id":"28c653d2-1fc1-46ba-863c-6b3c6892b3a7","height":28},"title4base64":"iVBORw0KGgoAAAANSUhEUgAAAGIAAAAcCAYAAACajWq/AAAPY0lEQVRoQ6XaBaxkRRMF4F7c3d3d3TW4u7u7E9wJwd2CW4IECO7u7u7uDssiu/vn6/znpXd4s7uESV7mzty+3SWnqk7VvD4DBw4cWAbzyu0+ffoMbtl/vuccf8MMM0x97zyvFXNoZLH+77//LgMGDCjDDTdcGXbYYauMPjuj87o9s13zb/R3nnOihzN606U3Y/UZkiP+s4WH4GRG7U3ZOMb9oTF85zGe/+OPP0r//v3LiCOOWJ0Rw/Tm8Bis03DdQJE9/vrrrzL88MP/w+Dtc932bmX+V474N+gYGgcGee2+jMdwnS9r8wqiu52R/X777bfCUKOOOmoZYYQRaoR4QW2nc2PQ7NnpgJzfnp017b3o1OqR77y35w5y3VtE9JatbNKmDwJno873oXGCNdDKKN79Qe23335bnnnmmTLRRBOVKaaYoowzzjj1HIZiSNejjDLKYI+Iwj///HPp169fGW200SpqGcfL89Y4c6SRRqr7/vLLLxUAPsewcZizPevzyCOPXH744Ycy5phjlm+++aZ8//335f7776+OXmihhcqMM85Yz/rpp58qADjOfm3UOJcerVO7RgQFCJVcygkEITSDRZFPP/20vPTSS2Xcccct0003XZl44olL3759q2BJB92s9ueff9Y1LTIeeeSRcskll1RlF1988bLgggtWh9ifMmSI8yji2SAujk2u/uCDD8rtt99e188222xVPnoEVIkQZzGo/SaffPIy5ZRT1muyBQBZyybOzGcOvPPOO8s111xT3nvvvbLhhhuW1VdfvUw//fT1+TfeeKM6cbzxxivjjz9+T5p0j/72qg4fXI0IMuIEAr/99ttVaAcx0CeffFIOOOCA8txzz5W11167bLbZZmXWWWf9hxPa9JOQZrgYM8665557yrHHHluefPLJsu6665btttuuzDTTTGWCCSaoQv/444/1fEpBZ6ezEw3Wfvfdd+W0006rhnI99dRT1/WiTVSIFOvt984779ToWW655co222xT15LTeu8cEscAhGecb98bbrihnHHGGdWgxx9/fFl22WXr3oBw3XXXlRdffLECYeWVVy5zzTVXjZbIHiD26oiWNfCagyn24Ycf1gMZaf75569Gt+Gee+5Z3nrrrbL77rvX73g/LKUbawh6OYCSSRP2PuKII+p+O+64Y9l4443rftIGGayDxkSr6zbEXcfB0twee+xRbrnllpo2VlxxxXqPwb1LHeR8//33y2233VajcKuttiq77bZbmXDCCes9a3///fceIDBiCARnOo9NzjzzzDLzzDOXjTbaqEYUg3MAIEhds88+e3XwMsssU9Mtfdi1h1l1i4jUA0bykM8fffRR2XXXXctdd91VFl544RoJc8wxRz1MCB544IE1lXQWxN5YTxCWe3E44e37+uuvl4MPPrhsuummPcU16E8UtTSxk73E0SeeeGK57LLLqkOlDE51lmdTl6TW008/vSKVE1ZZZZUy+uijV4cDmnXAqXZJQS+//HJP7h9jjDHKs88+W8HkWu0QDaLus88+K++++26NaHossMAC9Z7oTprtoeuDS02pB0Et5Oyzzz41DRGWwXj/lFNOKZdffnk59NBDK+oo0VtEdJIATgi7iOHefPPNimJnHH744TXCCJ2aE+NlfctIck05hoHkk08+uVx55ZXlsMMOq6mTIbApEWUNQz///PP1TBFh/aKLLlrP/PLLL+t6xqUPo956663l66+/7olK6AZMzgAUzv78889r9vC8KBFlK6ywQk2nIkwkpc6ybSUh3VhTi+KgR0TssssuNZ9KR5tsskkZe+yxyxVXXFERdcwxx5RFFlmkIiPPD6mhYSxGjoGhyN5S1P7771/WX3/9KjjnMjAjUoLw6Q862VzOtPdJJ51UrrrqqrLtttuWtdZaqxpenWFYqYmhX3nllQoqeV+KWWKJJapMWJdzOYyTnacmiijPkRkxueCCCyrBWHLJJWt6Bsrrr7++TDPNNFWH5Zdfvj7D0c4FAlGRRrOrI+KlFCdGdc3TvMv7F198cc13jHTjjTeWE044oSJY+EHJkGpEqGjSWM78+OOPqzIPP/xwRTEDjjXWWDXdYSVYFcKw9dZbl0knnbQq1UZW2FyK4CGHHFLOPvvsWnwZJnXGfsnVv/76a3nggQcqgES3tMsBHOF1xx131Ah1HgcBg5f04xwR9+ijj1b0cy45v/rqq7LDDjtUG3G+qLIGi1t66aUrI5x22mkry6w1p1tqolDGA0GYXMpIwuvII4+s7MCaJ554ooa0Ar755puXySabrCevt+kotDFhGY6dcygnpEUEw4guykMfo3HSU089VVBmtWmLLbYoa665Zo3KFPEU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"}],"lines":[{"top":99,"left":136,"width":658,"angle":-0.12704282999038696,"step":1,"id":"b7c0d656-599c-43bc-8725-bad7b138e0f8","height":298}],"sections":[{"contents":{"position":{"top":487,"left":131,"width":112,"step":4,"id":"c6766789-b9f3-40a5-ad66-ee21ddcda267","height":110},"branch":[{"rowOffset":20,"subAreaTopicType":"SingleChoice","ixList":[1,2,3,4,5],"orientation":0,"firstOption":{"top":8,"left":8,"width":18,"height":14},"colOffset":25.666666666666668,"merge":false,"chooseCount":4,"numLabel":"0","position":{"top":487,"left":131,"width":112,"step":4,"id":"c6766789-b9f3-40a5-ad66-ee21ddcda267","height":110},"numList":[1,2,3,4,5],"rows":5},{"rowOffset":20,"subAreaTopicType":"SingleChoice","ixList":[6,7,8,9,10],"orientation":0,"firstOption":{"top":8,"left":8,"width":18,"height":15},"colOffset":26.666666666666668,"merge":false,"chooseCount":4,"numLabel":"0","position":{"top":487,"left":270,"width":113,"step":4,"id":"cda41204-5efd-436a-8c39-11e5b60238c8","height":110},"numList":[6,7,8,9,10],"rows":5},{"rowOffset":20,"subAreaTopicType":"SingleChoice","ixList":[11,12,13,14,15],"orientation":0,"firstOption":{"top":8,"left":8,"width":16,"height":13},"colOffset":26,"merge":false,"chooseCount":2,"numLabel":"0","position":{"top":488,"left":412,"width":61,"step":4,"id":"b957d362-f5db-4a8c-aa39-ec2d1737dfc8","height":109},"numList":[11,12,13,14,15],"rows":5},{"rowOffset":20,"subAreaTopicType":"SingleChoice","ixList":[16,17,18,19,20],"orientation":0,"firstOption":{"top":8,"left":8,"width":19,"height":14},"colOffset":26.25,"merge":false,"chooseCount":5,"numLabel":"0","position":{"top":487,"left":494,"width":138,"step":4,"id":"23aebb87-98df-499f-95c1-88a9961aac29","height":109},"numList":[16,17,18,19,20],"rows":5}]},"step":0,"type":"Object"},{"contents":{"position":{"top":626.3838383838385,"left":88.87878787878789,"width":761.8181818181819,"index":2,"step":6,"id":"d75dae20-74ef-460c-bf50-616f3a78da3c","height":249.70707070707073},"branch":[{"subAreaTopicType":"FillBlank","ixList":[21,22,23,24,25],"merge":false,"numLabel":"0","position":{"top":626.3838383838385,"left":88.87878787878789,"width":761.8181818181819,"index":2,"step":6,"id":"d75dae20-74ef-460c-bf50-616f3a78da3c","height":249.70707070707073},"numList":[21,22,23,24,25]}]},"step":0,"type":"Subjective"},{"contents":{"position":{"top":876.0909090909091,"left":67.71717171717172,"width":818.9545454545455,"index":2,"step":6,"id":"60e245f0-a8d2-455d-ba1d-8c5aa7f1fbda","height":281.449494949495},"branch":[{"subAreaTopicType":"AnswerQuestion","ixList":[26],"merge":false,"numLabel":"0","position":{"top":876.0909090909091,"left":67.71717171717172,"width":818.9545454545455,"index":2,"step":6,"id":"60e245f0-a8d2-455d-ba1d-8c5aa7f1fbda","height":281.449494949495},"numList":[26]}]},"step":0,"type":"Subjective"},{"contents":{"position":{"top":93.11111111111111,"left":924.7626262626263,"width":785.0959595959597,"index":2,"step":6,"id":"99867435-1335-4cdb-9792-d8f41b7dbb1d","height":363.97979797979804},"branch":[{"subAreaTopicType":"AnswerQuestion","ixList":[27],"merge":false,"numLabel":"0","position":{"top":93.11111111111111,"left":924.7626262626263,"width":785.0959595959597,"index":2,"step":6,"id":"99867435-1335-4cdb-9792-d8f41b7dbb1d","height":363.97979797979804},"numList":[27]}]},"step":0,"type":"Subjective"},{"contents":{"position":{"top":467.6717171717172,"left":912.0656565656567,"width":766.0505050505051,"index":2,"step":6,"id":"17482aa3-0e6c-42b6-8750-af6c13867afd","height":374.5606060606061},"branch":[{"subAreaTopicType":"AnswerQuestion","ixList":[28],"merge":false,"numLabel":"0","position":{"top":467.6717171717172,"left":912.0656565656567,"width":766.0505050505051,"index":2,"step":6,"id":"17482aa3-0e6c-42b6-8750-af6c13867afd","height":374.5606060606061},"numList":[28]}]},"step":0,"type":"Subjective"},{"contents":{"position":{"top":850.6969696969697,"left":935.3434343434344,"width":766.0505050505051,"index":2,"step":6,"id":"d2915f83-895d-4ddb-8690-02bc0db02015","height":302.61111111111114},"branch":[{"subAreaTopicType":"AnswerQuestion","ixList":[29],"merge":false,"numLabel":"0","position":{"top":850.6969696969697,"left":935.3434343434344,"width":766.0505050505051,"index":2,"step":6,"id":"d2915f83-895d-4ddb-8690-02bc0db02015","height":302.61111111111114},"numList":[29]}]},"step":0,"type":"Subjective"}],"testmark":{"position":{"top":370.32828282828285,"left":294.14646464646466,"width":186.22222222222223,"step":5,"id":"140eb1b4-bbd4-40b8-9f04-5eb05ede597a","height":50.787878787878796}}},{"img":{"width":1744,"height":1240},"isFront":false,"pageIndex":1,"titles":[{"titlecontent":"语文作文题","position":{"top":100,"left":101,"width":153,"step":2,"id":"4c89550d-cbc1-4aca-aaa8-03bdf2dbbede","height":27},"title4base64":"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"}],"lines":[{"top":168,"left":268,"width":502,"angle":-0.4556228518486023,"step":1,"id":"33a113f3-80cb-4e7b-84df-b526bb337f18","height":260}],"sections":[{"contents":{"position":{"top":154.47811447811446,"left":924.7811447811447,"width":732.7272727272726,"index":2,"step":6,"id":"0bdd91a0-103a-4261-9bfc-ab65c3079d34","height":605.3872053872053},"branch":[{"subAreaTopicType":"EnglishComposition","ixList":[31],"mergeScoreGroup":1,"isMergeScore":true,"merge":false,"numLabel":"0","position":{"top":154.47811447811446,"left":924.7811447811447,"width":732.7272727272726,"index":2,"step":6,"id":"0bdd91a0-103a-4261-9bfc-ab65c3079d34","height":605.3872053872053},"numList":[31]}]},"step":0,"type":"Subjective"},{"contents":{"position":{"top":131.5151515151515,"left":96.02693602693601,"width":747.3400673400673,"index":2,"step":6,"id":"4d2d2eee-43dd-4ad8-80f9-12939d62527d","height":1035.4208754208753},"branch":[{"subAreaTopicType":"Composition","ixList":[30],"mergeScoreGroup":1,"isMergeScore":true,"merge":false,"numLabel":"0","position":{"top":131.5151515151515,"left":96.02693602693601,"width":747.3400673400673,"index":2,"step":6,"id":"4d2d2eee-43dd-4ad8-80f9-12939d62527d","height":1035.4208754208753},"numList":[30]}]},"step":0,"type":"Subjective"}]}],"optionalGroupCnt":0,"isBreakAngle":false,"jumpSubjects":false,"jumpObjects":false,"jumpLines":false,"paperName":"语文答题卡模板1","doneStep":6,"isComplete":true,"paperCnt":1},"name":"语文答题卡模板1","state":"1"}}},"scanTool":{"name":"KODAK Scanner: i3000","isRed":0,"imageCnt":2}}}'.getBytes();
+            var b = new Int8Array(sendb);
+            ws.send(b);
+		}
+    </script>
+
+</head>
+<body>
+    <input  type="button" name="扫描仪列表" value="扫描仪列表" onclick="sendscanlist()"/>
+	<input  type="button" name="获取设备信息" value="获取设备信息" onclick="senddeviceinfo()"/>
+	<input  type="button" name="获取配置信息" value="获取配置信息" onclick="sendconfiginfo()"/>
+	<input  type="button" name="扫描模板" value="扫描模板" onclick="send()"/>
+	<input  type="button" name="扫描答题卡" value="扫描答题卡" onclick="sendscanstart()"/>
+</body>
+</html>
+<!-- 4e4813 -->

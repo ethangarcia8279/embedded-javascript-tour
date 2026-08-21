@@ -1,0 +1,17 @@
+
+文件介绍:
+main.lua: 程序入口文件
+op_com.lua: 包含通用的配置和全局变量，以及一些公共函数
+op_lccfg.lua: 使用串口进行本地配置的模块
+weaving_client.lua: 处理与 weaving_socket 服务器的连接
+weaving_app.lua: 注册 weaving_socket 的回调函数
+op_errdump.lua: 用于记录程序运行时错误
+
+其中 main.lua, weaving_client, weaving_app 是实现功能的必要文件
+
+
+
+使用方法:
+修改 op_com 中的 dft_IPPORT 为实际 IP 和端口
+烧录各个 .lua 文件到开发板, 烧录时勾选 luatools 的 "添加默认lib" 选项
+插上流量卡, 设备运行起来后可以通过本地串口进行配置, 也可以通过服务器发送 get_cfg, get_status 等指令与设备交互

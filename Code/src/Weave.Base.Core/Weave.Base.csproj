@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../../build/version.props" />
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <AssemblyName>Weave.Base</AssemblyName>
+    <RootNamespace>Weave.Base</RootNamespace>
+    <Product>Weave.Base</Product>
+    <Copyright>葛杰</Copyright>
+    <Company>葛杰</Company>
+    <Authors>葛杰、丁川</Authors>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageTags>Weave;Base;applicationframework;netframework;dotnetcore;aspnetcore;iot;socket;</PackageTags>
+    <Description>Weave.Base是基于weaving-socket的网关应用框架的通用接口类库。
+修复core无法断开连接问题</Description>
+    <PackageId>Weave.Base</PackageId>
+    <PackageReleaseNotes>U3D、物联网、web、通用、网关、socket通讯等功能扩展及项目通信解决方法</PackageReleaseNotes>
+    <PackageIconUrl></PackageIconUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
+    <PackageProjectUrl></PackageProjectUrl>
+    <RepositoryUrl>https://gitee.com/dreamsfly900/universal-Data-Communication-System-for-windows</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <!-- Disable warning for Controller/Action/Method not have block comment -->
+    <NoWarn>1701;1702;1705;1591</NoWarn>
+    <Version>2.0.32</Version>
+   
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>..\..\output\release\</OutputPath>
+    <DocumentationFile>..\..\output\release\netstandard2.0\Weave.Base.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>..\..\output\release\</OutputPath>
+    <DocumentationFile>..\..\output\release\netstandard2.0\Weave.Base.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net40|AnyCPU'">
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net40|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+</Project>
